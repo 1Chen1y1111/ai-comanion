@@ -1,0 +1,14 @@
+@theme {
+  --color-brand-50: oklch(0.97 0.02 255);
+  --color-brand-100: oklch(0.93 0.04 255);
+  --color-brand-500: oklch(0.62 0.21 255);
+  --color-brand-600: oklch(0.55 0.22 255);
+  --color-brand-700: oklch(0.48 0.2 255);
+  --color-brand-950: oklch(0.22 0.09 255);
+  --radius-card: 1.25rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
