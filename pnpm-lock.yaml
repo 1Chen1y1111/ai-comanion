@@ -57,6 +57,9 @@ catalogs:
     typescript:
       specifier: 5.9.2
       version: 5.9.2
+    zod:
+      specifier: ^4.4.3
+      version: 4.4.3
 
 importers:
 
@@ -120,6 +123,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@repo/contracts':
+        specifier: workspace:^
+        version: link:../../packages/contracts
       hono:
         specifier: ^4.12.28
         version: 4.12.29
@@ -130,9 +136,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@repo/api':
+        specifier: workspace:*
+        version: link:../api
+      '@repo/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      hono:
+        specifier: ^4.12.28
+        version: 4.12.29
       next:
         specifier: 'catalog:'
         version: 16.2.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -170,6 +185,19 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.2
+
+  packages/contracts:
+    dependencies:
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       typescript:
         specifier: 'catalog:'
         version: 5.9.2
@@ -3858,6 +3886,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
 
@@ -7694,3 +7725,5 @@ snapshots:
       zod: 3.25.76
 
   zod@3.25.76: {}
+
+  zod@4.4.3: {}

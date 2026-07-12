@@ -1,140 +1,90 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/card";
-import { Input } from "@repo/ui/components/input";
-import { Label } from "@repo/ui/components/label";
-import { Separator } from "@repo/ui/components/separator";
-import { TailwindCheck } from "@repo/ui/tailwind-check";
-import styles from "./page.module.css";
+import type {
+  ApiResponse,
+  PingRequest,
+  PingResponse,
+} from "@repo/contracts";
+import { BizCode } from "@repo/contracts";
+import { Card, CardContent } from "@repo/ui/components/card";
+import { InferResponseType } from "hono";
+import { hc } from "hono/client";
+import type { Apptype } from "../../api/src/app";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+const apiBaseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:8787";
+const rpcPayload: PingRequest = { name: "web" };
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+type PingRpcResponse = InferResponseType<
+  ReturnType<typeof hc<Apptype>>["rpc"]["system"]["ping"]["$post"]
+>;
+
+async function getPingResponse(): Promise<PingRpcResponse> {
+  const client = hc<Apptype>(apiBaseUrl);
+
+  try {
+    const response = await client.rpc.system.ping.$post({
+      json: rpcPayload,
+    });
+
+    return await response.json();
+  } catch (error) {
+    return {
+      ok: false,
+      error: {
+        code: BizCode.SYSTEM_UPSTREAM_TIMEOUT,
+        message: error instanceof Error ? error.message : "API request failed",
+      },
+      meta: {
+        requestId: "unavailable",
+        timestamp: new Date().toISOString(),
+      },
+    } satisfies ApiResponse<PingResponse>;
+  }
+}
+
+export default async function Home() {
+  const pingResult = await getPingResponse();
+  const requestBody = JSON.stringify(rpcPayload, null, 2);
+  const responseBody = JSON.stringify(pingResult, null, 2);
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Web · shadcn/ui 验证</CardTitle>
-            <CardDescription>
-              五个基础组件均由 @repo/ui 共享提供。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="web-email">邮箱</Label>
-              <Input
-                id="web-email"
-                type="email"
-                placeholder="name@example.com"
-              />
+    <main className="mx-auto w-full max-w-5xl px-6">
+      <section className="py-10">
+        <Card className="overflow-hidden border border-border bg-background shadow-soft">
+          <CardContent className="space-y-5 p-6">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                RPC validation
+              </p>
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                Shared request and response contract
+              </h2>
             </div>
-            <Separator />
-            <p className="text-sm text-muted-foreground">
-              Label、Input 与 Separator 已在 Web 子站生效。
-            </p>
+            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full border border-border px-3 py-1">
+                POST /rpc/system/ping
+              </span>
+              <span className="rounded-full border border-border px-3 py-1">
+                {pingResult.ok
+                  ? "ok=true"
+                  : `code=${pingResult.error.code}`}
+              </span>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-muted/40 p-4">
+                <p className="text-sm font-medium text-foreground">Request</p>
+                <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all text-xs leading-6 text-muted-foreground">
+                  {requestBody}
+                </pre>
+              </div>
+              <div className="rounded-2xl border border-border bg-muted/40 p-4">
+                <p className="text-sm font-medium text-foreground">Response</p>
+                <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all text-xs leading-6 text-muted-foreground">
+                  {responseBody}
+                </pre>
+              </div>
+            </div>
           </CardContent>
-          <CardFooter className="justify-end gap-2">
-            <Button type="button" variant="outline">
-              取消
-            </Button>
-            <Button type="button">确认组件</Button>
-          </CardFooter>
         </Card>
-        <TailwindCheck appName="web" />
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
-    </div>
+      </section>
+    </main>
   );
 }

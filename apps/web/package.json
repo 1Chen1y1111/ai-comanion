@@ -17,6 +17,9 @@
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
+    "@repo/api": "workspace:*",
+    "@repo/contracts": "workspace:*",
+    "hono": "^4.12.28",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
