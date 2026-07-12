@@ -1,5 +1,16 @@
 import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
+import { Button } from "@repo/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@repo/ui/components/card";
+import { Input } from "@repo/ui/components/input";
+import { Label } from "@repo/ui/components/label";
+import { Separator } from "@repo/ui/components/separator";
 import { TailwindCheck } from "@repo/ui/tailwind-check";
 import styles from "./page.module.css";
 
@@ -64,9 +75,34 @@ export default function Home() {
             Read our docs
           </a>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Web · shadcn/ui 验证</CardTitle>
+            <CardDescription>
+              五个基础组件均由 @repo/ui 共享提供。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="web-email">邮箱</Label>
+              <Input
+                id="web-email"
+                type="email"
+                placeholder="name@example.com"
+              />
+            </div>
+            <Separator />
+            <p className="text-sm text-muted-foreground">
+              Label、Input 与 Separator 已在 Web 子站生效。
+            </p>
+          </CardContent>
+          <CardFooter className="justify-end gap-2">
+            <Button type="button" variant="outline">
+              取消
+            </Button>
+            <Button type="button">确认组件</Button>
+          </CardFooter>
+        </Card>
         <TailwindCheck appName="web" />
       </main>
       <footer className={styles.footer}>
