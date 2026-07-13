@@ -2,6 +2,7 @@ import { ApiMeta, BizCode, buildFailure, buildSuccess, PingRequestSchema } from 
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { validator } from "hono/validator";
+import { getApiEnv } from "./env";
 
 type AppErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500 | 504
 
@@ -16,7 +17,11 @@ class AppError extends Error {
     }
 }
 
-const app = new Hono()
+const app = new Hono<{
+    Bindings: {
+        APP_ENV: 'development' | 'test' | 'production'
+    }
+}>()
 
 
 
@@ -57,8 +62,17 @@ app.notFound((c) => {
 
 const routes = app
     .get('/health', (c) => {
-        const res = buildSuccess({ service: 'api' }, createMeta())
-        return c.json(res)
+        const env = getApiEnv(c.env)
+
+        return c.json(
+            buildSuccess(
+                {
+                    service: "api",
+                    env: env.APP_ENV
+                },
+                createMeta()
+            )
+        )
     })
     .post('/rpc/system/ping', validator('json', (value, c) => {
         const parsed = PingRequestSchema.safeParse(value)
@@ -76,9 +90,18 @@ const routes = app
     }),
         (c) => {
             const payload = c.req.valid('json')
-            const successMsg = { service: 'api', message: `pong, ${payload.name}` }
-            const res = buildSuccess(successMsg, createMeta());
-            return c.json(res);
+            const env = getApiEnv(c.env)
+
+            return c.json(
+                buildSuccess(
+                    {
+                        service: 'api', message: `pong, ${payload.name}`,
+                        env: env.APP_ENV
+                    },
+                    createMeta(),
+
+                )
+            );
         }
     )
 

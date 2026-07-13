@@ -1,13 +1,11 @@
-import type {
-  ApiResponse,
-  PingRequest,
-  PingResponse,
-} from "@repo/contracts";
+import type { ApiResponse, PingRequest, PingResponse } from "@repo/contracts";
 import { BizCode } from "@repo/contracts";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { InferResponseType } from "hono";
 import { hc } from "hono/client";
-import type { Apptype } from "../../api/src/app";
+import type { Apptype } from "@repo/api";
+import { getWebServerEnv } from "../src/env.server";
+import { WebEnvBadge } from "../src/web-env-badge";
 
 const apiBaseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:8787";
 const rpcPayload: PingRequest = { name: "web" };
@@ -41,6 +39,7 @@ async function getPingResponse(): Promise<PingRpcResponse> {
 }
 
 export default async function Home() {
+  const env = getWebServerEnv();
   const pingResult = await getPingResponse();
   const requestBody = JSON.stringify(rpcPayload, null, 2);
   const responseBody = JSON.stringify(pingResult, null, 2);
@@ -48,6 +47,11 @@ export default async function Home() {
   return (
     <main className="mx-auto w-full max-w-5xl px-6">
       <section className="py-10">
+        <section>
+          <span>server {env.APP_ENV}</span>
+          <span> {env.API_BASE_URL}</span>
+          <WebEnvBadge />
+        </section>
         <Card className="overflow-hidden border border-border bg-background shadow-soft">
           <CardContent className="space-y-5 p-6">
             <div className="space-y-2">
@@ -63,9 +67,7 @@ export default async function Home() {
                 POST /rpc/system/ping
               </span>
               <span className="rounded-full border border-border px-3 py-1">
-                {pingResult.ok
-                  ? "ok=true"
-                  : `code=${pingResult.error.code}`}
+                {pingResult.ok ? "ok=true" : `code=${pingResult.error.code}`}
               </span>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
